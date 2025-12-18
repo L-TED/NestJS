@@ -1,15 +1,18 @@
 import { Animal } from 'src/animals/entities/animal.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity()
+@Entity('zookeeper', { schema: 'zoo' })
 export class Zookeeper {
-  @PrimaryGeneratedColumn()
+  @PrimaryGeneratedColumn({ type: 'int', name: 'id' })
   id: number;
-  @Column()
+
+  @Column('varchar', { name: 'name', length: 255 })
   name: string;
-  @Column()
+
+  @Column('int', { name: 'age' })
   age: number;
-  @Column()
+
+  @Column('varchar', { name: 'position', length: 255 })
   position: string;
 
   @OneToMany(() => Animal, (animal) => animal.zookeeper)

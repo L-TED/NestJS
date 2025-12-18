@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateZookeeperDto } from './dto/create-zookeeper.dto';
 import { UpdateZookeeperDto } from './dto/update-zookeeper.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -25,8 +25,11 @@ export class ZookeepersService {
   }
 
   async findOne(id: number) {
-    const zookeeper = await this.zookeeperRepository.findOneBy({ id: id });
-    return zookeeper ?? '해당 직원은 없습니다.';
+    const zookeeper = await this.zookeeperRepository.findOne({
+      where: { id: id },
+    });
+    if (!zookeeper) throw new NotFoundException('존재하지 않는 직원 입니다.');
+    return zookeeper;
   }
 
   update(id: number, updateZookeeperDto: UpdateZookeeperDto) {
@@ -35,7 +38,7 @@ export class ZookeepersService {
 
   async remove(id: number) {
     const target = this.zookeeperRepository.findOneBy({ id: id });
-    if (!target) '유효하지 않은 ID입니다.';
+    if (!target) throw new NotFoundException('유효하지 않은 ID입니다.');
     await this.zookeeperRepository.delete({ id: id });
     return { message: `삭제됨`, data: target };
   }

@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateAnimalDto } from './dto/create-animal.dto';
 import { UpdateAnimalDto } from './dto/update-animal.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -18,8 +18,11 @@ export class AnimalsService {
     const getZookeeper = await this.zookeeperRepository.findOne({
       where: { id: createAnimalDto.zookeeperId },
     });
-    if (!getZookeeper) return '담당 조련사가 없습니다.';
-    const createAnimal = await this.animalRepository.create(createAnimalDto);
+    if (!getZookeeper) throw new NotFoundException('담당 조련사가 없습니다.');
+    const createAnimal = await this.animalRepository.create({
+      ...createAnimalDto,
+      zookeeper: getZookeeper,
+    });
     const result = await this.animalRepository.save(createAnimal);
 
     return result;
@@ -31,8 +34,9 @@ export class AnimalsService {
   }
 
   async findOne(id: number) {
-    const animal = await this.animalRepository.findOneBy({ id: id });
-    return animal ?? '해당 동물은 없습니다.';
+    const animal = await this.animalRepository.findOne({ where: { id: id } });
+    if (!animal) throw new NotFoundException('존재하지 않는 동물입니다.');
+    return animal;
   }
 
   update(id: number, updateAnimalDto: UpdateAnimalDto) {
@@ -41,7 +45,7 @@ export class AnimalsService {
 
   async remove(id: number) {
     const target = this.animalRepository.findOneBy({ id: id });
-    if (!target) '유효하지 않은 ID입니다.';
+    if (!target) throw new NotFoundException('유효하지 않은 ID입니다.');
     await this.animalRepository.delete({ id: id });
     return { message: `삭제됨`, data: target };
   }
