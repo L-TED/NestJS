@@ -29,7 +29,7 @@ export class ComputersService {
   }
 
   async update(id: number, updateComputerDto: UpdateComputerDto) {
-    return `This action updates a #${id} computer`;
+    return `This action updates a #${id}`;
   }
 
   async remove(id: number) {
