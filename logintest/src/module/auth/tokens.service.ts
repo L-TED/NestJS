@@ -45,8 +45,14 @@ export class TokenService {
       const getToken = await this.tokenRepo.findOne({
         where: { userId: payload.sub },
       });
+      if (!getToken)
+        throw new UnauthorizedException('리프레쉬 토큰이 존재하지 않습니다.');
       const isSame = await bcrypt.compare(token, getToken?.hashedToken ?? '');
       if (!isSame)
+        throw new UnauthorizedException('리프레쉬 토큰이 유효하지 않습니다.');
+      if (getToken.isRevoked)
+        throw new UnauthorizedException('리프레쉬 토큰이 유효하지 않습니다.');
+      if (getToken.expiresAt < new Date())
         throw new UnauthorizedException('리프레쉬 토큰이 유효하지 않습니다.');
       return await this.generateAccessToken(payload.sub);
     } catch (e) {
